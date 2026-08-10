@@ -12,7 +12,7 @@ const TILE_IMAGES = Array.from({ length: 27 }, (_, tile) => {
 const state = {
   wall: [], hands: [[], [], [], []], melds: [[], [], [], []], discards: [],
   canDiscard: false, finished: false, drawnTile: null, pendingClaim: null,
-  concealedKongTile: null, scores: [0, 0, 0, 0],
+  concealedKongTile: null, selectedIndex: null, scores: [0, 0, 0, 0],
 };
 
 const handElement = document.querySelector("#hand");
@@ -58,13 +58,14 @@ function render() {
   state.hands[0].forEach((tile, index) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `tile${tile === state.drawnTile && index === state.hands[0].lastIndexOf(tile) ? " drawn" : ""}`;
+    const isDrawn = tile === state.drawnTile && index === state.hands[0].lastIndexOf(tile);
+    button.className = `tile${isDrawn ? " drawn" : ""}${index === state.selectedIndex ? " selected" : ""}`;
     button.disabled = !state.canDiscard;
     button.setAttribute("aria-label", `打出${TILE_LABELS[tile]}`);
     const artwork = createTile(tile);
     artwork.className = "tile-art";
     button.append(artwork);
-    button.addEventListener("click", () => discardHumanTile(index));
+    button.addEventListener("click", () => selectHumanTile(index));
     handElement.append(button);
   });
 
@@ -95,7 +96,11 @@ function render() {
   document.querySelector("#win").hidden = !state.pendingClaim?.canWin;
   document.querySelector("#pong").hidden = !state.pendingClaim?.canPong;
   document.querySelector("#kong").hidden = !state.pendingClaim?.canKong;
-  selfActions.hidden = state.concealedKongTile === null || !state.canDiscard;
+  const canConcealedKong = state.concealedKongTile !== null && state.canDiscard;
+  const canConfirmDiscard = state.selectedIndex !== null && state.canDiscard;
+  selfActions.hidden = !canConcealedKong && !canConfirmDiscard;
+  document.querySelector("#concealed-kong").hidden = !canConcealedKong;
+  document.querySelector("#confirm-discard").hidden = !canConfirmDiscard;
   if (state.concealedKongTile !== null) {
     document.querySelector("#concealed-kong").textContent = `暗杠 ${TILE_LABELS[state.concealedKongTile]}`;
   }
@@ -183,16 +188,32 @@ function scoreSelfDraw(winner) {
 }
 
 function finish(title, message) {
-  state.finished = true; state.canDiscard = false; state.pendingClaim = null;
+  state.finished = true; state.canDiscard = false; state.pendingClaim = null; state.selectedIndex = null;
   document.querySelector("#result-title").textContent = title;
   document.querySelector("#result-message").textContent = message;
   resultElement.hidden = false;
   render();
 }
 
+function selectHumanTile(index) {
+  if (!state.canDiscard || state.finished) return;
+  state.selectedIndex = index;
+  statusElement.textContent = `已选择 ${TILE_LABELS[state.hands[0][index]]}，请确认打出`;
+  render();
+}
+
+function confirmDiscard() {
+  if (state.selectedIndex === null) return;
+  discardHumanTile(state.selectedIndex);
+}
+
+function botDelay() {
+  return 1000 + Math.floor(Math.random() * 4001);
+}
+
 function discardHumanTile(index) {
   if (!state.canDiscard || state.finished) return;
-  state.canDiscard = false; state.concealedKongTile = null;
+  state.canDiscard = false; state.concealedKongTile = null; state.selectedIndex = null;
   const discarded = state.hands[0].splice(index, 1)[0];
   state.discards.push(discarded);
   state.drawnTile = null;
@@ -206,7 +227,7 @@ function discardHumanTile(index) {
       return;
     }
     playBots(1);
-  }, 800);
+  }, botDelay());
 }
 
 function offerClaim(tile, nextPlayer, sourcePlayer) {
@@ -261,6 +282,7 @@ function claim(type) {
     }
   }
   state.canDiscard = true;
+  state.selectedIndex = null;
   statusElement.textContent = `${type}！请选择一张牌打出`;
   findConcealedKong();
   render();
@@ -272,7 +294,7 @@ function skipClaim() {
   state.pendingClaim = null;
   statusElement.textContent = "电脑玩家正在出牌…";
   render();
-  window.setTimeout(() => playBots(nextPlayer), 700);
+  window.setTimeout(() => playBots(nextPlayer), botDelay());
 }
 
 function playBots(player) {
@@ -304,7 +326,7 @@ function playBots(player) {
     return;
   }
   if (offerClaim(discarded, nextPlayer, player)) return;
-  window.setTimeout(() => playBots(nextPlayer), 900);
+  window.setTimeout(() => playBots(nextPlayer), botDelay());
 }
 
 function findConcealedKong() {
@@ -320,6 +342,7 @@ function findConcealedKong() {
 function concealedKong() {
   const tile = state.concealedKongTile;
   if (tile === null || !state.canDiscard) return;
+  state.selectedIndex = null;
   removeTiles(state.hands[0], tile, 4);
   state.melds[0].push({ type: "暗杠", tile, count: 4 });
   for (let player = 1; player < 4; player += 1) transferScore(player, 0, 1);
@@ -345,6 +368,7 @@ function startHumanTurn() {
     return finish("自摸和牌", `每家支付 ${points} 分${multiplierText(0)}！`);
   }
   state.canDiscard = true;
+  state.selectedIndex = null;
   statusElement.textContent = `你摸到了 ${TILE_LABELS[tile]}`;
   findConcealedKong();
   render();
@@ -354,7 +378,7 @@ function newGame() {
   state.wall = shuffle(Array.from({ length: 108 }, (_, index) => Math.floor(index / 4)));
   state.hands = [[], [], [], []]; state.melds = [[], [], [], []]; state.discards = [];
   state.finished = false; state.canDiscard = false; state.drawnTile = null;
-  state.pendingClaim = null; state.concealedKongTile = null; resultElement.hidden = true;
+  state.pendingClaim = null; state.concealedKongTile = null; state.selectedIndex = null; resultElement.hidden = true;
   for (let round = 0; round < 13; round += 1) for (let player = 0; player < 4; player += 1) draw(player);
   statusElement.textContent = "开局，轮到你摸牌";
   startHumanTurn();
@@ -373,4 +397,5 @@ document.querySelector("#pong").addEventListener("click", () => claim("碰"));
 document.querySelector("#kong").addEventListener("click", () => claim("杠"));
 document.querySelector("#skip").addEventListener("click", skipClaim);
 document.querySelector("#concealed-kong").addEventListener("click", concealedKong);
+document.querySelector("#confirm-discard").addEventListener("click", confirmDiscard);
 newGame();

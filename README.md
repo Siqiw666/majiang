@@ -16,6 +16,8 @@ python3 -m http.server 8080
 
 计分从四家 0 分开始累计：点炮转移 1 分，自摸由其余三家各付 1 分，明杠由放杠者付 1 分，暗杠由其余三家各付 1 分。胡牌者有杠时胡牌分翻倍，清一色再翻倍；两项可以叠加。重新开局保留分数，“分数清零”单独重置积分。
 
+玩家出牌采用“选择牌 → 确认打出”的两步操作；电脑玩家每次轮到行动时会随机思考 1–5 秒。
+
 ## 牌面素材
 
 彩色 SVG 牌面取自 [FluffyStuff/riichi-mahjong-tiles](https://github.com/FluffyStuff/riichi-mahjong-tiles)，原作者已将全部素材置于公共领域。

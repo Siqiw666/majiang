@@ -2,7 +2,7 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="一个简洁的单机麻将小游戏" />
     <title>青雀 · 麻将</title>
     <link rel="stylesheet" href="styles.css" />
@@ -57,8 +57,9 @@
           <div id="hand" class="hand" aria-label="你的手牌"></div>
           <div id="self-actions" class="self-actions" hidden>
             <button id="concealed-kong" class="claim-button" type="button">暗杠</button>
+            <button id="confirm-discard" class="claim-button confirm-button" type="button">确认打出</button>
           </div>
-          <p class="hint">点击手牌打出；有相同牌时可以碰或杠</p>
+          <p class="hint">先选择一张手牌，再确认打出；有相同牌时可以碰或杠</p>
         </div>
       </section>
     </main>
@@ -70,6 +71,12 @@
         <p id="result-message"></p>
         <button id="play-again" class="button button-large" type="button">再来一局</button>
       </div>
+    </div>
+
+    <div class="rotate-notice" aria-hidden="true">
+      <div class="phone-icon"><span></span></div>
+      <h2>请横屏游玩</h2>
+      <p>将手机旋转 90°，牌桌会自动切换为横屏布局</p>
     </div>
 
     <script src="script.js"></script>
