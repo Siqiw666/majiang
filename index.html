@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="一个简洁的单机麻将小游戏" />
+    <title>青雀 · 麻将</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">MAHJONG</p>
+          <h1>青雀</h1>
+        </div>
+        <div class="game-actions">
+          <span id="wall-count" class="wall-count">牌墙 84</span>
+          <button id="new-game" class="button" type="button">重新开局</button>
+        </div>
+      </header>
+
+      <section class="table" aria-label="麻将牌桌">
+        <div class="opponent opponent-top">
+          <span class="seat">北</span>
+          <div class="tile-backs" id="player-2"></div>
+        </div>
+        <div class="opponent opponent-left">
+          <span class="seat">西</span>
+          <div class="tile-backs vertical" id="player-1"></div>
+        </div>
+        <div class="opponent opponent-right">
+          <span class="seat">东</span>
+          <div class="tile-backs vertical" id="player-3"></div>
+        </div>
+
+        <div class="center-panel">
+          <div class="round-mark">南一局</div>
+          <p id="status" class="status" aria-live="polite">正在洗牌…</p>
+          <div id="discards" class="discards" aria-label="弃牌区"></div>
+        </div>
+
+        <div class="player-area">
+          <div class="player-label">
+            <span class="seat active">南</span>
+            <span>你的手牌</span>
+          </div>
+          <div id="hand" class="hand" aria-label="你的手牌"></div>
+          <p class="hint">摸牌后，点击一张牌打出</p>
+        </div>
+      </section>
+    </main>
+
+    <div id="result" class="result-overlay" hidden>
+      <div class="result-card">
+        <p class="eyebrow">本局结束</p>
+        <h2 id="result-title">和牌</h2>
+        <p id="result-message"></p>
+        <button id="play-again" class="button button-large" type="button">再来一局</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
