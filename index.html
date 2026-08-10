@@ -16,27 +16,34 @@
         </div>
         <div class="game-actions">
           <span id="wall-count" class="wall-count">牌墙 84</span>
+          <button id="reset-scores" class="button button-secondary" type="button">分数清零</button>
           <button id="new-game" class="button" type="button">重新开局</button>
         </div>
       </header>
 
       <section class="table" aria-label="麻将牌桌">
         <div class="opponent opponent-top">
-          <span class="seat">北</span>
+          <div class="seat-info"><span class="seat">北</span><span id="score-2" class="score">0 分</span></div>
           <div class="tile-backs" id="player-2"></div>
         </div>
         <div class="opponent opponent-left">
-          <span class="seat">西</span>
+          <div class="seat-info"><span class="seat">西</span><span id="score-1" class="score">0 分</span></div>
           <div class="tile-backs vertical" id="player-1"></div>
         </div>
         <div class="opponent opponent-right">
-          <span class="seat">东</span>
+          <div class="seat-info"><span class="seat">东</span><span id="score-3" class="score">0 分</span></div>
           <div class="tile-backs vertical" id="player-3"></div>
         </div>
 
         <div class="center-panel">
           <div class="round-mark">南一局</div>
           <p id="status" class="status" aria-live="polite">正在洗牌…</p>
+          <div id="claim-actions" class="claim-actions" hidden>
+            <button id="win" class="claim-button win-button" type="button">胡</button>
+            <button id="pong" class="claim-button" type="button">碰</button>
+            <button id="kong" class="claim-button" type="button">杠</button>
+            <button id="skip" class="claim-button secondary" type="button">过</button>
+          </div>
           <div id="discards" class="discards" aria-label="弃牌区"></div>
         </div>
 
@@ -44,9 +51,14 @@
           <div class="player-label">
             <span class="seat active">南</span>
             <span>你的手牌</span>
+            <span id="score-0" class="score player-score">0 分</span>
           </div>
+          <div id="melds" class="melds" aria-label="你的亮牌区"></div>
           <div id="hand" class="hand" aria-label="你的手牌"></div>
-          <p class="hint">摸牌后，点击一张牌打出</p>
+          <div id="self-actions" class="self-actions" hidden>
+            <button id="concealed-kong" class="claim-button" type="button">暗杠</button>
+          </div>
+          <p class="hint">点击手牌打出；有相同牌时可以碰或杠</p>
         </div>
       </section>
     </main>

@@ -62,6 +62,7 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: 30px
 .button:hover { transform: translateY(-1px); }
 .button:active { transform: translateY(0); }
 .button-large { min-width: 140px; padding: 12px 22px; }
+.button-secondary { color: var(--ink); border: 1px solid #d8d1c1; background: transparent; }
 
 .table {
   position: relative;
@@ -79,6 +80,37 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: 30px
 .opponent-top { top: 24px; left: 50%; flex-direction: column; transform: translateX(-50%); }
 .opponent-left { top: 44%; left: 24px; transform: translateY(-50%); }
 .opponent-right { top: 44%; right: 24px; flex-direction: row-reverse; transform: translateY(-50%); }
+.seat-info { display: flex; align-items: center; gap: 9px; }
+.opponent-top .seat-info { flex-direction: row; gap: 9px; }
+.score {
+  display: inline-flex;
+  min-width: 64px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+  color: #f8f4e9;
+  background: rgb(7 42 34 / 32%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: .02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.player-score {
+  min-width: 76px;
+  min-height: 36px;
+  margin-left: 4px;
+  border-color: rgb(234 188 92 / 62%);
+  color: #17342d;
+  background: linear-gradient(180deg, #f3cf79, #dda63e);
+  box-shadow: 0 4px 10px rgb(8 40 32 / 20%), inset 0 1px 0 rgb(255 255 255 / 38%);
+  font-size: 18px;
+}
 
 .seat {
   display: grid;
@@ -97,9 +129,13 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: 30px
 .tile-back {
   width: 23px;
   height: 34px;
-  border: 2px solid #f0e6ca;
+  padding: 3px;
+  border: 1px solid #ded8c8;
+  border-bottom: 3px solid #cfc7b5;
   border-radius: 4px;
-  background: repeating-linear-gradient(45deg, #347766, #347766 3px, #2a6959 3px, #2a6959 6px);
+  background:
+    repeating-linear-gradient(45deg, #3a8a73 0 2px, #2f745f 2px 4px) content-box,
+    #fffdf6;
   box-shadow: 0 2px 3px rgb(0 0 0 / 18%);
 }
 .vertical .tile-back { width: 34px; height: 23px; }
@@ -111,41 +147,66 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: 30px
   width: min(52%, 520px);
   min-height: 260px;
   padding: 18px;
-  border: 1px solid rgb(255 255 255 / 13%);
-  border-radius: 18px;
-  background: rgb(13 52 43 / 25%);
   transform: translate(-50%, -50%);
 }
 .round-mark { color: #e9d8ab; font-family: Georgia, "Songti SC", serif; text-align: center; }
 .status { margin: 8px 0 18px; color: white; font-size: 14px; text-align: center; }
 .discards { display: grid; grid-template-columns: repeat(9, 31px); justify-content: center; gap: 5px; }
 
+.claim-actions, .self-actions { display: flex; justify-content: center; gap: 8px; }
+.claim-actions { margin: -6px 0 14px; }
+.self-actions { margin-top: 9px; }
+.claim-actions[hidden], .self-actions[hidden] { display: none; }
+.claim-button {
+  min-width: 46px;
+  padding: 7px 13px;
+  border: 1px solid #efd8a2;
+  border-radius: 999px;
+  color: var(--ink);
+  background: #f3d895;
+  font-weight: 700;
+  cursor: pointer;
+}
+.claim-button.secondary { color: white; border-color: rgb(255 255 255 / 25%); background: rgb(255 255 255 / 10%); }
+.claim-button.win-button { color: white; border-color: #d66555; background: #c44e42; }
+
 .player-area { position: absolute; right: 18px; bottom: 20px; left: 18px; }
 .player-label { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; color: white; font-size: 14px; }
 .hand { display: flex; justify-content: center; align-items: flex-end; gap: 4px; min-height: 82px; }
+.melds { display: flex; justify-content: center; min-height: 0; margin-bottom: 7px; gap: 10px; }
+.meld { position: relative; display: flex; gap: 2px; padding: 19px 4px 4px; border-radius: 7px; background: rgb(8 39 32 / 32%); }
+.meld-label {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  color: #f5e3b8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.meld .tile { width: 34px; height: 47px; border-bottom-width: 3px; font-size: 34px; }
 
 .tile {
-  display: grid;
   width: 54px;
   height: 74px;
   flex: 0 0 auto;
-  place-items: center;
-  border: 0;
-  border-bottom: 5px solid #d8d0bc;
+  padding: 4px;
+  border: 1px solid #e1dccf;
+  border-bottom: 6px solid #cec6b4;
   border-radius: 7px;
-  color: #18372f;
-  background: var(--tile);
-  box-shadow: 0 4px 8px rgb(0 0 0 / 20%);
-  font-family: "Songti SC", "SimSun", serif;
-  font-size: 24px;
-  font-weight: 700;
+  background: #fffef9;
+  object-fit: contain;
+  box-shadow: 0 4px 7px rgb(0 0 0 / 20%);
+  filter: none;
   user-select: none;
 }
-button.tile { cursor: pointer; transition: transform .14s ease, box-shadow .14s ease; }
-button.tile:hover, button.tile:focus-visible { outline: none; transform: translateY(-10px); box-shadow: 0 12px 14px rgb(0 0 0 / 20%); }
+button.tile { overflow: hidden; cursor: pointer; transition: transform .14s ease, box-shadow .14s ease; }
+button.tile:hover, button.tile:focus-visible { outline: none; transform: translateY(-10px); box-shadow: 0 12px 12px rgb(0 0 0 / 20%); }
+.tile-art { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .tile.drawn { margin-left: 10px; }
-.tile.compact { width: 31px; height: 43px; border-bottom-width: 3px; border-radius: 4px; font-size: 16px; box-shadow: 0 2px 4px rgb(0 0 0 / 18%); }
-.tile[data-suit="z"] { color: #b2483d; }
+.tile.compact { width: 31px; height: 43px; padding: 2px; border-bottom-width: 4px; box-shadow: 0 2px 3px rgb(0 0 0 / 18%); }
 .hint { margin: 9px 0 0; color: rgb(255 255 255 / 62%); font-size: 12px; text-align: center; }
 
 .result-overlay {
@@ -169,7 +230,7 @@ button.tile:hover, button.tile:focus-visible { outline: none; transform: transla
   .opponent-left, .opponent-right { display: none; }
   .center-panel { top: 43%; width: 90%; }
   .hand { gap: 2px; overflow-x: auto; justify-content: flex-start; padding: 10px 2px; }
-  .tile { width: 42px; height: 60px; font-size: 20px; }
+  .tile { width: 42px; height: 60px; font-size: 39px; }
   .discards { grid-template-columns: repeat(9, 28px); }
   .tile.compact { width: 28px; height: 39px; font-size: 14px; }
 }
