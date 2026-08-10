@@ -16,6 +16,7 @@
         </div>
         <div class="game-actions">
           <span id="wall-count" class="wall-count">牌墙 84</span>
+          <button id="fullscreen-toggle" class="button button-secondary fullscreen-button" type="button">全屏</button>
           <button id="reset-scores" class="button button-secondary" type="button">分数清零</button>
           <button id="new-game" class="button" type="button">重新开局</button>
         </div>
@@ -73,10 +74,11 @@
       </div>
     </div>
 
-    <div class="rotate-notice" aria-hidden="true">
+    <div class="rotate-notice">
       <div class="phone-icon"><span></span></div>
       <h2>请横屏游玩</h2>
-      <p>将手机旋转 90°，牌桌会自动切换为横屏布局</p>
+      <p id="fullscreen-message">点击进入全屏，然后将手机旋转 90°</p>
+      <button id="start-fullscreen" class="button fullscreen-start" type="button">进入横屏全屏</button>
     </div>
 
     <script src="script.js"></script>

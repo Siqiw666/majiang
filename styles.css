@@ -63,6 +63,7 @@ h1 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: 30px
 .button:active { transform: translateY(0); }
 .button-large { min-width: 140px; padding: 12px 22px; }
 .button-secondary { color: var(--ink); border: 1px solid #d8d1c1; background: transparent; }
+.fullscreen-button { display: none; }
 
 .table {
   position: relative;
@@ -266,6 +267,7 @@ button.tile.selected { transform: translateY(-13px); box-shadow: 0 0 0 3px #efbd
   }
   .rotate-notice h2 { margin: 24px 0 8px; font-family: Georgia, "Songti SC", serif; font-size: 28px; }
   .rotate-notice p { max-width: 260px; margin: 0; color: rgb(255 255 255 / 65%); font-size: 14px; line-height: 1.7; }
+  .fullscreen-start { margin-top: 22px; color: var(--ink); background: #f0cc75; }
   .phone-icon {
     width: 54px;
     height: 92px;
@@ -284,14 +286,15 @@ button.tile.selected { transform: translateY(-13px); box-shadow: 0 0 0 3px #efbd
 
 @media (max-height: 540px) and (orientation: landscape) {
   body { overflow: hidden; background: var(--paper); }
-  .game-shell { width: 100%; height: 100vh; padding: max(5px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+  .game-shell { width: 100%; height: 100vh; height: 100dvh; padding: max(5px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
   .topbar { height: 42px; margin-bottom: 4px; }
   .topbar .eyebrow { display: none; }
   h1 { font-size: 22px; }
   .game-actions { gap: 6px; }
   .wall-count { font-size: 12px; }
   .button { padding: 7px 12px; font-size: 12px; }
-  .table { min-height: 0; height: calc(100vh - 51px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-width: 4px; border-radius: 14px; }
+  .table { min-height: 0; height: calc(100vh - 51px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); height: calc(100dvh - 51px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-width: 4px; border-radius: 14px; }
+  .fullscreen-button { display: inline-flex; }
 
   .opponent-left, .opponent-right { display: flex; top: 43%; }
   .opponent-top { top: 6px; }
@@ -327,3 +330,8 @@ button.tile.selected { transform: translateY(-13px); box-shadow: 0 0 0 3px #efbd
   .self-actions { right: 5px; bottom: 56px; left: auto; margin: 0; transform: none; }
   .hint { display: none; }
 }
+
+:fullscreen body, :fullscreen .game-shell { width: 100%; height: 100dvh; }
+:fullscreen .game-shell { max-width: none; }
+:-webkit-full-screen body, :-webkit-full-screen .game-shell { width: 100%; height: 100vh; }
+:-webkit-full-screen .game-shell { max-width: none; }

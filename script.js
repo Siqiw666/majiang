@@ -389,8 +389,53 @@ function resetScores() {
   render();
 }
 
+function isFullscreen() {
+  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+async function enterFullscreen() {
+  const root = document.documentElement;
+  const request = root.requestFullscreen || root.webkitRequestFullscreen;
+  const message = document.querySelector("#fullscreen-message");
+
+  if (!request) {
+    message.textContent = "当前浏览器不支持网页全屏，请手动横屏或将网页添加到主屏幕";
+    return;
+  }
+
+  try {
+    await request.call(root);
+    if (screen.orientation?.lock) {
+      try {
+        await screen.orientation.lock("landscape");
+      } catch {
+        message.textContent = "已进入全屏，请手动将手机旋转为横屏";
+      }
+    }
+  } catch {
+    message.textContent = "全屏请求未成功，请再次点击或手动旋转手机";
+  }
+}
+
+async function toggleFullscreen() {
+  if (!isFullscreen()) {
+    await enterFullscreen();
+    return;
+  }
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+  if (exit) await exit.call(document);
+}
+
+function updateFullscreenButton() {
+  document.querySelector("#fullscreen-toggle").textContent = isFullscreen() ? "退出全屏" : "全屏";
+}
+
 document.querySelector("#new-game").addEventListener("click", newGame);
 document.querySelector("#reset-scores").addEventListener("click", resetScores);
+document.querySelector("#start-fullscreen").addEventListener("click", enterFullscreen);
+document.querySelector("#fullscreen-toggle").addEventListener("click", toggleFullscreen);
+document.addEventListener("fullscreenchange", updateFullscreenButton);
+document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
 document.querySelector("#play-again").addEventListener("click", newGame);
 document.querySelector("#win").addEventListener("click", claimWin);
 document.querySelector("#pong").addEventListener("click", () => claim("碰"));
