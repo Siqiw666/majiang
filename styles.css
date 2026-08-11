@@ -347,6 +347,7 @@ button.tile.selected { transform: translateY(-13px); box-shadow: 0 0 0 3px #efbd
   .rotate-notice h2 { margin: 24px 0 8px; font-family: Georgia, "Songti SC", serif; font-size: 28px; }
   .rotate-notice p { max-width: 260px; margin: 0; color: rgb(255 255 255 / 65%); font-size: 14px; line-height: 1.7; }
   .fullscreen-start { margin-top: 22px; color: var(--ink); background: #f0cc75; }
+  .force-landscape-button { margin-top: 18px; color: rgb(255 255 255 / 76%); text-decoration: underline; text-underline-offset: 4px; }
   .phone-icon {
     width: 54px;
     height: 92px;
@@ -356,6 +357,70 @@ button.tile.selected { transform: translateY(-13px); box-shadow: 0 0 0 3px #efbd
     animation: rotate-phone 1.8s ease-in-out infinite;
   }
   .phone-icon span { display: block; width: 100%; height: 100%; border-radius: 5px; background: rgb(240 204 117 / 16%); }
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  body.force-landscape .rotate-notice { display: none; }
+  body.force-landscape .game-shell {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: 100dvh;
+    height: 100dvw;
+    max-width: none;
+    padding: max(5px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(5px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-top));
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center;
+  }
+  body.force-landscape .game-shell[hidden] { display: none !important; }
+  body.force-landscape .topbar { height: 42px; margin-bottom: 4px; }
+  body.force-landscape .topbar .eyebrow { display: none; }
+  body.force-landscape h1 { font-size: 22px; }
+  body.force-landscape .game-actions { gap: 6px; }
+  body.force-landscape .wall-count { font-size: 12px; }
+  body.force-landscape .button { padding: 7px 12px; font-size: 12px; }
+  body.force-landscape .table { min-height: 0; height: calc(100dvw - 51px - env(safe-area-inset-left) - env(safe-area-inset-right)); border-width: 4px; border-radius: 14px; }
+  body.force-landscape .fullscreen-button { display: inline-flex; }
+  body.force-landscape .opponent-left, body.force-landscape .opponent-right { display: flex; top: 43%; }
+  body.force-landscape .opponent-top { top: 6px; }
+  body.force-landscape .opponent-left { left: 8px; }
+  body.force-landscape .opponent-right { right: 8px; }
+  body.force-landscape .opponent { gap: 5px; }
+  body.force-landscape .seat { width: 24px; height: 24px; font-size: 11px; }
+  body.force-landscape .score { min-width: 48px; min-height: 25px; padding: 4px 7px; font-size: 12px; }
+  body.force-landscape .opponent-top .seat-info { position: absolute; top: 0; right: calc(100% + 8px); }
+  body.force-landscape .tile-backs { gap: 1px; }
+  body.force-landscape .tile-back { width: 17px; height: 25px; padding: 2px; border-bottom-width: 2px; }
+  body.force-landscape .vertical .tile-back { width: 25px; height: 17px; }
+  body.force-landscape .center-panel { top: 43%; width: min(54%, 430px); min-height: 130px; padding: 4px; }
+  body.force-landscape .round-mark { font-size: 12px; }
+  body.force-landscape .status { margin: 3px 0 7px; font-size: 12px; }
+  body.force-landscape .claim-actions { margin: 0 0 6px; }
+  body.force-landscape .claim-button { min-width: 38px; padding: 5px 9px; font-size: 12px; }
+  body.force-landscape .discards { grid-template-columns: repeat(12, 23px); gap: 2px; }
+  body.force-landscape .tile.compact { width: 23px; height: 32px; padding: 1px; border-bottom-width: 3px; }
+  body.force-landscape .player-area { right: 6px; bottom: 5px; left: 6px; }
+  body.force-landscape .player-label { margin-bottom: 3px; font-size: 12px; }
+  body.force-landscape .player-score { min-width: 54px; min-height: 27px; font-size: 13px; }
+  body.force-landscape .melds { position: absolute; bottom: 0; left: 2px; flex-direction: column; margin: 0; gap: 3px; }
+  body.force-landscape .meld { padding: 15px 3px 3px; }
+  body.force-landscape .meld .tile { width: 25px; height: 34px; padding: 1px; border-bottom-width: 2px; }
+  body.force-landscape .meld-label { font-size: 9px; }
+  body.force-landscape .hand { min-height: 56px; padding: 0; gap: 2px; overflow: visible; justify-content: center; }
+  body.force-landscape .tile { width: clamp(32px, 5.2vh, 45px); height: clamp(45px, 7.1vh, 62px); padding: 2px; border-bottom-width: 4px; }
+  body.force-landscape .tile.drawn { margin-left: 7px; }
+  body.force-landscape .self-actions { right: 5px; bottom: 56px; left: auto; margin: 0; transform: none; }
+  body.force-landscape .hint { display: none; }
+  body.force-landscape .result-overlay:not([hidden]) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    width: 100dvh;
+    height: 100dvw;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
 }
 
 @keyframes rotate-phone {

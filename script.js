@@ -428,6 +428,15 @@ function isFullscreen() {
   return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
 }
 
+function isForcedLandscape() {
+  return document.body.classList.contains("force-landscape");
+}
+
+function setForcedLandscape(enabled) {
+  document.body.classList.toggle("force-landscape", enabled);
+  updateFullscreenButton();
+}
+
 async function enterFullscreen() {
   const root = document.documentElement;
   const request = root.requestFullscreen || root.webkitRequestFullscreen;
@@ -444,15 +453,21 @@ async function enterFullscreen() {
       try {
         await screen.orientation.lock("landscape");
       } catch {
-        message.textContent = "已进入全屏，请手动将手机旋转为横屏";
+        message.textContent = "浏览器无法自动横屏，请打开自动旋转并转动手机，或使用下方强制横屏";
       }
+    } else {
+      message.textContent = "当前浏览器无法自动横屏，请转动手机，或使用下方强制横屏";
     }
   } catch {
-    message.textContent = "全屏请求未成功，请再次点击或手动旋转手机";
+    message.textContent = "全屏请求未成功，请改用 Chrome，或使用下方强制横屏";
   }
 }
 
 async function toggleFullscreen() {
+  if (isForcedLandscape()) {
+    setForcedLandscape(false);
+    return;
+  }
   if (!isFullscreen()) {
     await enterFullscreen();
     return;
@@ -462,12 +477,15 @@ async function toggleFullscreen() {
 }
 
 function updateFullscreenButton() {
-  document.querySelector("#fullscreen-toggle").textContent = isFullscreen() ? "退出全屏" : "全屏";
+  const active = isFullscreen() || isForcedLandscape();
+  document.querySelector("#fullscreen-toggle").textContent = active ? "退出全屏" : "全屏";
+  document.querySelector("#online-fullscreen-toggle").textContent = active ? "退出全屏" : "全屏";
 }
 
 document.querySelector("#new-game").addEventListener("click", newGame);
 document.querySelector("#reset-scores").addEventListener("click", resetScores);
 document.querySelector("#start-fullscreen").addEventListener("click", enterFullscreen);
+document.querySelector("#force-landscape").addEventListener("click", () => setForcedLandscape(true));
 document.querySelector("#fullscreen-toggle").addEventListener("click", toggleFullscreen);
 document.addEventListener("fullscreenchange", updateFullscreenButton);
 document.addEventListener("webkitfullscreenchange", updateFullscreenButton);
