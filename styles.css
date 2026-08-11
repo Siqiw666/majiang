@@ -22,6 +22,71 @@ body {
 }
 
 button { font: inherit; }
+[hidden] { display: none !important; }
+
+.entry-view {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 20%, rgb(35 94 79 / 10%), transparent 35%),
+    var(--paper);
+}
+.entry-card, .lobby-card {
+  width: min(560px, 100%);
+  padding: 42px;
+  border: 1px solid #e1dac9;
+  border-radius: 28px;
+  background: rgb(255 253 247 / 88%);
+  box-shadow: var(--shadow);
+}
+.entry-card { text-align: center; }
+.entry-card h1 { font-size: 46px; }
+.entry-copy { margin: 12px auto 28px; color: var(--muted); line-height: 1.7; }
+.mode-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mode-card {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 7px;
+  padding: 24px 16px;
+  border: 1px solid #ddd5c3;
+  border-radius: 18px;
+  color: var(--ink);
+  background: #fffdf7;
+  cursor: pointer;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.mode-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgb(20 57 48 / 12%); }
+.mode-card.featured { color: white; border-color: var(--table); background: var(--table); }
+.mode-icon { display: grid; width: 46px; height: 46px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-family: Georgia, "Songti SC", serif; font-size: 20px; }
+.mode-card strong { margin-top: 5px; font-size: 18px; }
+.mode-card small { color: inherit; opacity: .68; }
+.lobby-card { position: relative; }
+.lobby-card h2 { margin-bottom: 0; font-family: Georgia, "Songti SC", serif; font-size: 32px; }
+.text-button { padding: 0; border: 0; color: var(--muted); background: transparent; cursor: pointer; }
+#back-to-mode { position: absolute; top: 20px; left: 24px; }
+.field-label { display: block; margin: 18px 0 7px; color: var(--muted); font-size: 13px; }
+.field-input { width: 100%; height: 48px; padding: 0 15px; border: 1px solid #d9d1bf; border-radius: 12px; outline: none; color: var(--ink); background: white; font-size: 16px; }
+.field-input:focus { border-color: var(--table); box-shadow: 0 0 0 3px rgb(35 94 79 / 10%); }
+.lobby-actions { display: grid; gap: 12px; margin-top: 16px; }
+.join-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.room-code-input { letter-spacing: .18em; font-variant-numeric: tabular-nums; }
+.form-message { min-height: 22px; margin: 12px 0 0; color: #b24b41; font-size: 13px; text-align: center; }
+.copy-button { display: block; margin: 7px 0 20px; color: #47796c; }
+.room-seats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.room-seat { display: flex; align-items: center; gap: 10px; min-height: 62px; padding: 10px 12px; border: 1px solid #e1dac9; border-radius: 13px; background: white; }
+.room-seat .seat { flex: 0 0 auto; color: var(--table); border-color: #b9c9c4; }
+.room-seat.empty { color: #9da9a5; background: #f6f3eb; }
+.room-seat-name { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.host-badge { margin-left: auto; padding: 3px 7px; border-radius: 999px; color: #795414; background: #f2d68e; font-size: 10px; }
+.online-player-name { max-width: 100px; overflow: hidden; color: rgb(255 255 255 / 85%); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.room-status { margin: 18px 0 12px; color: var(--muted); text-align: center; }
+#start-online-game { width: 100%; }
+#start-online-game:disabled { cursor: not-allowed; opacity: .48; }
+.leave-button { display: block; margin: 16px auto 0; }
 
 .game-shell {
   width: min(1180px, 100%);
@@ -233,10 +298,19 @@ button.tile.selected { transform: translateY(-13px); box-shadow: 0 0 0 3px #efbd
 .result-card { width: min(380px, 100%); padding: 38px; border-radius: 22px; background: var(--paper); box-shadow: var(--shadow); text-align: center; }
 .result-card h2 { margin-bottom: 10px; font-family: Georgia, "Songti SC", serif; font-size: 34px; }
 .result-card > p:not(.eyebrow) { color: var(--muted); }
+.result-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 20px 0; }
+.result-score-row { display: flex; justify-content: space-between; padding: 9px 11px; border-radius: 9px; color: var(--ink); background: #ebe6d9; font-size: 13px; }
+.result-score-row.winner { color: #17342d; background: #efd184; font-weight: 700; }
+.result-hint { min-height: 20px; margin: 10px 0 0; font-size: 12px; }
 
 .rotate-notice { display: none; }
 
 @media (max-width: 760px) {
+  .entry-view { padding: 14px; }
+  .entry-card, .lobby-card { padding: 34px 20px 24px; border-radius: 20px; }
+  .entry-card h1 { font-size: 38px; }
+  .mode-actions { grid-template-columns: 1fr; }
+  .mode-card { padding: 17px; }
   .game-shell { padding: 12px; }
   .table { min-height: 650px; border-width: 5px; border-radius: 20px; }
   .opponent-left, .opponent-right { display: none; }
@@ -250,7 +324,7 @@ button.tile.selected { transform: translateY(-13px); box-shadow: 0 0 0 3px #efbd
 @media (max-width: 760px) and (orientation: portrait) {
   body { overflow: hidden; background: var(--table-dark); }
   .game-shell, .result-overlay { display: none; }
-  .rotate-notice {
+  body.game-active .rotate-notice {
     position: fixed;
     inset: 0;
     z-index: 100;

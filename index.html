@@ -8,7 +8,58 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="game-shell">
+    <main id="mode-view" class="entry-view">
+      <section class="entry-card">
+        <p class="eyebrow">MAHJONG WITH FRIENDS</p>
+        <h1>青雀</h1>
+        <p class="entry-copy">一个人练手，或者叫上三位朋友开一桌。</p>
+        <div class="mode-actions">
+          <button id="single-mode" class="mode-card" type="button">
+            <span class="mode-icon">单</span>
+            <strong>单机游戏</strong>
+            <small>与三位电脑玩家对局</small>
+          </button>
+          <button id="online-mode" class="mode-card featured" type="button">
+            <span class="mode-icon">联</span>
+            <strong>联机游戏</strong>
+            <small>创建房间，邀请朋友加入</small>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <main id="lobby-view" class="entry-view" hidden>
+      <section class="lobby-card">
+        <button id="back-to-mode" class="text-button" type="button">← 返回</button>
+        <div id="lobby-form-view">
+          <p class="eyebrow">ONLINE ROOM</p>
+          <h2>朋友房</h2>
+          <p class="entry-copy">输入昵称创建房间，或使用朋友发来的六位房间号加入。</p>
+          <label class="field-label" for="nickname">你的昵称</label>
+          <input id="nickname" class="field-input" maxlength="12" autocomplete="nickname" placeholder="例如：小王" />
+          <div class="lobby-actions">
+            <button id="create-room" class="button button-large" type="button">创建房间</button>
+            <div class="join-row">
+              <input id="room-code-input" class="field-input room-code-input" maxlength="6" inputmode="numeric" placeholder="房间号" />
+              <button id="join-room" class="button button-large" type="button">加入</button>
+            </div>
+          </div>
+          <p id="lobby-error" class="form-message" aria-live="polite"></p>
+        </div>
+
+        <div id="waiting-room" hidden>
+          <p class="eyebrow">WAITING ROOM</p>
+          <h2>房间 <span id="room-code-display"></span></h2>
+          <button id="copy-invite" class="text-button copy-button" type="button">复制邀请信息</button>
+          <div id="room-seats" class="room-seats"></div>
+          <p id="room-status" class="room-status">等待朋友加入…</p>
+          <button id="start-online-game" class="button button-large" type="button" disabled>等待四人到齐</button>
+          <button id="leave-room" class="text-button leave-button" type="button">退出房间</button>
+        </div>
+      </section>
+    </main>
+
+    <main id="game-view" class="game-shell" hidden>
       <header class="topbar">
         <div>
           <p class="eyebrow">MAHJONG</p>
@@ -65,6 +116,69 @@
       </section>
     </main>
 
+    <main id="online-game-view" class="game-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">ONLINE MAHJONG</p>
+          <h1>青雀</h1>
+        </div>
+        <div class="game-actions">
+          <span id="online-room-label" class="wall-count">房间</span>
+          <span id="online-wall-count" class="wall-count">牌墙 56</span>
+          <button id="online-fullscreen-toggle" class="button button-secondary fullscreen-button" type="button">全屏</button>
+        </div>
+      </header>
+
+      <section class="table" aria-label="联机麻将牌桌">
+        <div class="opponent opponent-top">
+          <div class="seat-info"><span id="online-seat-top" class="seat">对</span><span id="online-name-top" class="online-player-name"></span><span id="online-score-top" class="score">0 分</span></div>
+          <div class="tile-backs" id="online-hand-top"></div>
+        </div>
+        <div class="opponent opponent-left">
+          <div class="seat-info"><span id="online-seat-left" class="seat">左</span><span id="online-name-left" class="online-player-name"></span><span id="online-score-left" class="score">0 分</span></div>
+          <div class="tile-backs vertical" id="online-hand-left"></div>
+        </div>
+        <div class="opponent opponent-right">
+          <div class="seat-info"><span id="online-seat-right" class="seat">右</span><span id="online-name-right" class="online-player-name"></span><span id="online-score-right" class="score">0 分</span></div>
+          <div class="tile-backs vertical" id="online-hand-right"></div>
+        </div>
+
+        <div class="center-panel">
+          <div class="round-mark">朋友房</div>
+          <p id="online-status" class="status" aria-live="polite">牌局准备中…</p>
+          <div id="online-claim-actions" class="claim-actions" hidden>
+            <button id="online-win" class="claim-button win-button" type="button">胡</button>
+            <button id="online-pass" class="claim-button secondary" type="button">过</button>
+          </div>
+          <div id="online-discards" class="discards" aria-label="联机弃牌区"></div>
+        </div>
+
+        <div class="player-area">
+          <div class="player-label">
+            <span id="online-seat-self" class="seat active">我</span>
+            <span id="online-name-self">你的手牌</span>
+            <span id="online-score-self" class="score player-score">0 分</span>
+          </div>
+          <div id="online-hand" class="hand" aria-label="你的联机手牌"></div>
+          <div id="online-self-actions" class="self-actions" hidden>
+            <button id="online-confirm-discard" class="claim-button confirm-button" type="button">确认打出</button>
+          </div>
+          <p class="hint">轮到你时，先选择一张手牌，再确认打出</p>
+        </div>
+      </section>
+    </main>
+
+    <div id="online-result" class="result-overlay" hidden>
+      <div class="result-card">
+        <p class="eyebrow">本局结束</p>
+        <h2 id="online-result-title">胡牌</h2>
+        <p id="online-result-message"></p>
+        <div id="online-result-scores" class="result-scores"></div>
+        <button id="online-next-round" class="button button-large" type="button">下一局</button>
+        <p id="online-next-round-hint" class="result-hint"></p>
+      </div>
+    </div>
+
     <div id="result" class="result-overlay" hidden>
       <div class="result-card">
         <p class="eyebrow">本局结束</p>
@@ -81,6 +195,8 @@
       <button id="start-fullscreen" class="button fullscreen-start" type="button">进入横屏全屏</button>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
+    <script src="lobby.js"></script>
   </body>
 </html>

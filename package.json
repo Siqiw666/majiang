@@ -1,0 +1,21 @@
+{
+  "name": "qingque-mahjong",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A lightweight multiplayer mahjong game for friends",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test test/multiplayer.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}
