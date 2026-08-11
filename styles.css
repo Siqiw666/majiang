@@ -83,6 +83,11 @@ button { font: inherit; }
 .room-seat-name { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .host-badge { margin-left: auto; padding: 3px 7px; border-radius: 999px; color: #795414; background: #f2d68e; font-size: 10px; }
 .online-player-name { max-width: 100px; overflow: hidden; color: rgb(255 255 255 / 85%); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.online-opponent-melds { display: flex; gap: 4px; }
+.online-opponent-melds .meld { padding-top: 14px; }
+.online-opponent-melds .meld .tile { width: 22px; height: 31px; padding: 1px; border-bottom-width: 2px; }
+.online-opponent-melds .meld-label { font-size: 8px; }
+.vertical-melds { flex-direction: column; }
 .room-status { margin: 18px 0 12px; color: var(--muted); text-align: center; }
 #start-online-game { width: 100%; }
 #start-online-game:disabled { cursor: not-allowed; opacity: .48; }

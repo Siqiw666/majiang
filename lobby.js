@@ -145,6 +145,33 @@ function createTileBacks(count, vertical = false) {
   });
 }
 
+function onlineMeldLabel(type) {
+  return {
+    pong: "碰",
+    "exposed-kong": "明杠",
+    "concealed-kong": "暗杠",
+    "supplement-kong": "补杠",
+  }[type] || type;
+}
+
+function createOnlineMeld(meld) {
+  const group = document.createElement("div");
+  group.className = "meld";
+  const label = document.createElement("span");
+  label.className = "meld-label";
+  label.textContent = onlineMeldLabel(meld.type);
+  const tiles = Array.from({ length: meld.count }, () => {
+    const tile = document.createElement("img");
+    tile.className = "tile";
+    tile.src = TILE_IMAGES[meld.tile];
+    tile.alt = TILE_LABELS[meld.tile];
+    tile.draggable = false;
+    return tile;
+  });
+  group.replaceChildren(label, ...tiles);
+  return group;
+}
+
 function updateOnlineGame(game) {
   lobbyState.game = game;
   lobbyState.selectedIndex = null;
@@ -159,6 +186,8 @@ function renderOnlineGame() {
   document.querySelector("#online-room-label").textContent = `房间 ${game.roomCode}`;
   document.querySelector("#online-wall-count").textContent = `牌墙 ${game.wallCount}`;
   document.querySelector("#online-hand").replaceChildren(...game.hand.map((tile, index) => createOnlineTile(tile, true, index)));
+  const selfPlayer = game.players.find((player) => player.seat === game.selfSeat);
+  document.querySelector("#online-melds").replaceChildren(...(selfPlayer?.melds || []).map(createOnlineMeld));
   document.querySelector("#online-discards").replaceChildren(...game.discards.slice(-36).map(({ tile }) => createOnlineTile(tile)));
 
   game.players.forEach((player) => {
@@ -168,6 +197,7 @@ function renderOnlineGame() {
     document.querySelector(`#online-score-${position}`).textContent = `${player.score} 分`;
     if (position !== "self") {
       document.querySelector(`#online-hand-${position}`).replaceChildren(...createTileBacks(player.tileCount, position !== "top"));
+      document.querySelector(`#online-melds-${position}`).replaceChildren(...player.melds.map(createOnlineMeld));
     }
   });
 
@@ -179,14 +209,28 @@ function renderOnlineGame() {
     document.querySelector("#online-status").textContent = "本局已经结束";
   } else if (actions.canWin) {
     document.querySelector("#online-status").textContent = actions.winType === "self-draw" ? "你可以自摸胡牌" : "有人点炮，你可以胡牌";
+  } else if (actions.canPong || actions.canKong) {
+    document.querySelector("#online-status").textContent = actions.canKong ? "你可以碰牌或杠牌" : "你可以碰牌";
   } else {
     document.querySelector("#online-status").textContent = game.canDiscard
       ? lobbyState.selectedIndex === null ? "轮到你出牌" : `已选择 ${TILE_LABELS[game.hand[lobbyState.selectedIndex]]}，请确认打出`
       : `等待 ${currentPlayer?.nickname || "其他玩家"} 出牌…`;
   }
-  document.querySelector("#online-claim-actions").hidden = !actions.canWin;
+  const hasClaimAction = actions.canWin || actions.canPong || actions.canKong;
+  document.querySelector("#online-claim-actions").hidden = !hasClaimAction;
+  document.querySelector("#online-win").hidden = !actions.canWin;
+  document.querySelector("#online-pong").hidden = !actions.canPong;
+  document.querySelector("#online-kong").hidden = !actions.canKong;
   document.querySelector("#online-pass").hidden = !actions.canPass;
-  document.querySelector("#online-self-actions").hidden = lobbyState.selectedIndex === null || !game.canDiscard;
+  const canConcealedKong = actions.concealedKongTile !== null && actions.concealedKongTile !== undefined;
+  const canSupplementKong = actions.supplementKongTile !== null && actions.supplementKongTile !== undefined;
+  const canConfirm = lobbyState.selectedIndex !== null && game.canDiscard;
+  document.querySelector("#online-self-actions").hidden = !canConcealedKong && !canSupplementKong && !canConfirm;
+  document.querySelector("#online-concealed-kong").hidden = !canConcealedKong;
+  document.querySelector("#online-supplement-kong").hidden = !canSupplementKong;
+  document.querySelector("#online-confirm-discard").hidden = !canConfirm;
+  if (canConcealedKong) document.querySelector("#online-concealed-kong").textContent = `暗杠 ${TILE_LABELS[actions.concealedKongTile]}`;
+  if (canSupplementKong) document.querySelector("#online-supplement-kong").textContent = `补杠 ${TILE_LABELS[actions.supplementKongTile]}`;
   renderOnlineResult();
 }
 
@@ -256,9 +300,31 @@ document.querySelector("#online-win").addEventListener("click", () => {
     if (!response?.ok) document.querySelector("#online-status").textContent = response?.message || "胡牌失败。";
   });
 });
+document.querySelector("#online-pong").addEventListener("click", () => {
+  lobbyState.socket?.emit("claim-pong", {}, (response) => {
+    if (!response?.ok) document.querySelector("#online-status").textContent = response?.message || "碰牌失败。";
+  });
+});
+document.querySelector("#online-kong").addEventListener("click", () => {
+  lobbyState.socket?.emit("claim-kong", {}, (response) => {
+    if (!response?.ok) document.querySelector("#online-status").textContent = response?.message || "杠牌失败。";
+  });
+});
 document.querySelector("#online-pass").addEventListener("click", () => {
-  lobbyState.socket?.emit("pass-win", {}, (response) => {
+  lobbyState.socket?.emit("pass-action", {}, (response) => {
     if (!response?.ok) document.querySelector("#online-status").textContent = response?.message || "操作失败。";
+  });
+});
+document.querySelector("#online-concealed-kong").addEventListener("click", () => {
+  const tile = lobbyState.game?.actions.concealedKongTile;
+  lobbyState.socket?.emit("concealed-kong", { tile }, (response) => {
+    if (!response?.ok) document.querySelector("#online-status").textContent = response?.message || "暗杠失败。";
+  });
+});
+document.querySelector("#online-supplement-kong").addEventListener("click", () => {
+  const tile = lobbyState.game?.actions.supplementKongTile;
+  lobbyState.socket?.emit("supplement-kong", { tile }, (response) => {
+    if (!response?.ok) document.querySelector("#online-status").textContent = response?.message || "补杠失败。";
   });
 });
 document.querySelector("#online-next-round").addEventListener("click", () => {

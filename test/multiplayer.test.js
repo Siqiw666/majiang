@@ -2,7 +2,14 @@ const assert = require("node:assert/strict");
 const { spawn } = require("node:child_process");
 const { after, before, test } = require("node:test");
 const { io } = require("socket.io-client");
-const { finishRound, isSevenPairs, isStandardWin, winDetails, winningInfo } = require("../server/server");
+const {
+  buildClaimQueue,
+  finishRound,
+  isSevenPairs,
+  isStandardWin,
+  winDetails,
+  winningInfo,
+} = require("../server/server");
 
 const port = 32000 + Math.floor(Math.random() * 1000);
 const serverUrl = `http://127.0.0.1:${port}`;
@@ -108,7 +115,7 @@ test("四人可以加入、开局并完成一轮出牌", async () => {
     let claimantSeat = states.findIndex((state) => state.actions.canPass);
     while (claimantSeat !== -1) {
       stateEvents = players.slice(0, 4).map((client) => nextEvent(client, "game-state"));
-      const passed = await emitAck(players[claimantSeat], "pass-win");
+      const passed = await emitAck(players[claimantSeat], "pass-action");
       assert.equal(passed.ok, true);
       states = await Promise.all(stateEvents);
       claimantSeat = states.findIndex((state) => state.actions.canPass);
@@ -153,12 +160,43 @@ test("七对与清一色翻倍可以叠加", () => {
   assert.deepEqual(details.bonuses, ["七对×2", "清一色×2"]);
 });
 
+test("有副露时按剩余手牌胡牌，有杠再翻倍", () => {
+  const hand = [1, 2, 3, 4, 5, 6, 9, 10, 11, 18, 18];
+  const melds = [{ type: "supplement-kong", tile: 0, count: 4, sourceSeat: 3 }];
+  const details = winDetails(hand, melds);
+  assert.equal(details.pattern, "普通胡");
+  assert.equal(details.hasKong, true);
+  assert.equal(details.multiplier, 2);
+  assert.deepEqual(details.bonuses, ["有杠×2"]);
+});
+
+test("点炮胡牌的响应优先于碰杠，碰杠按座次顺序响应", () => {
+  const room = {
+    game: {
+      hands: [
+        [],
+        [0, 0, 1, 1, 2, 2, 9, 9, 10, 10, 18, 18, 26],
+        [26, 26, 26, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        [26, 26, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      ],
+      melds: [[], [], [], []],
+    },
+  };
+  const queue = buildClaimQueue(room, 26, 0);
+  assert.deepEqual(queue, [
+    { seat: 1, canWin: true, canPong: false, canKong: false },
+    { seat: 2, canWin: false, canPong: true, canKong: true },
+    { seat: 3, canWin: false, canPong: true, canKong: false },
+  ]);
+});
+
 test("点炮和自摸结算后由胜者下一局先出", () => {
   const ronRoom = {
     scores: [0, 0, 0, 0],
     nextStarterSeat: 0,
     game: {
       hands: [[], [0, 0, 1, 1, 2, 2, 9, 9, 10, 10, 18, 18, 26], [], []],
+      melds: [[], [], [], []],
       discards: [{ tile: 26, seat: 0 }],
       pendingAction: { tile: 26 },
     },
@@ -173,6 +211,7 @@ test("点炮和自摸结算后由胜者下一局先出", () => {
     nextStarterSeat: 0,
     game: {
       hands: [[], [], [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6], []],
+      melds: [[], [], [], []],
       discards: [],
       pendingAction: null,
     },

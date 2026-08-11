@@ -109,6 +109,7 @@
           <div id="hand" class="hand" aria-label="你的手牌"></div>
           <div id="self-actions" class="self-actions" hidden>
             <button id="concealed-kong" class="claim-button" type="button">暗杠</button>
+            <button id="supplement-kong" class="claim-button" type="button">补杠</button>
             <button id="confirm-discard" class="claim-button confirm-button" type="button">确认打出</button>
           </div>
           <p class="hint">先选择一张手牌，再确认打出；有相同牌时可以碰或杠</p>
@@ -132,14 +133,17 @@
       <section class="table" aria-label="联机麻将牌桌">
         <div class="opponent opponent-top">
           <div class="seat-info"><span id="online-seat-top" class="seat">对</span><span id="online-name-top" class="online-player-name"></span><span id="online-score-top" class="score">0 分</span></div>
+          <div id="online-melds-top" class="online-opponent-melds"></div>
           <div class="tile-backs" id="online-hand-top"></div>
         </div>
         <div class="opponent opponent-left">
           <div class="seat-info"><span id="online-seat-left" class="seat">左</span><span id="online-name-left" class="online-player-name"></span><span id="online-score-left" class="score">0 分</span></div>
+          <div id="online-melds-left" class="online-opponent-melds vertical-melds"></div>
           <div class="tile-backs vertical" id="online-hand-left"></div>
         </div>
         <div class="opponent opponent-right">
           <div class="seat-info"><span id="online-seat-right" class="seat">右</span><span id="online-name-right" class="online-player-name"></span><span id="online-score-right" class="score">0 分</span></div>
+          <div id="online-melds-right" class="online-opponent-melds vertical-melds"></div>
           <div class="tile-backs vertical" id="online-hand-right"></div>
         </div>
 
@@ -148,6 +152,8 @@
           <p id="online-status" class="status" aria-live="polite">牌局准备中…</p>
           <div id="online-claim-actions" class="claim-actions" hidden>
             <button id="online-win" class="claim-button win-button" type="button">胡</button>
+            <button id="online-pong" class="claim-button" type="button">碰</button>
+            <button id="online-kong" class="claim-button" type="button">杠</button>
             <button id="online-pass" class="claim-button secondary" type="button">过</button>
           </div>
           <div id="online-discards" class="discards" aria-label="联机弃牌区"></div>
@@ -159,8 +165,11 @@
             <span id="online-name-self">你的手牌</span>
             <span id="online-score-self" class="score player-score">0 分</span>
           </div>
+          <div id="online-melds" class="melds" aria-label="你的联机亮牌区"></div>
           <div id="online-hand" class="hand" aria-label="你的联机手牌"></div>
           <div id="online-self-actions" class="self-actions" hidden>
+            <button id="online-concealed-kong" class="claim-button" type="button">暗杠</button>
+            <button id="online-supplement-kong" class="claim-button" type="button">补杠</button>
             <button id="online-confirm-discard" class="claim-button confirm-button" type="button">确认打出</button>
           </div>
           <p class="hint">轮到你时，先选择一张手牌，再确认打出</p>

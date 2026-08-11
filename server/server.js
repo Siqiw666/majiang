@@ -81,16 +81,16 @@ function canFormMelds(counts) {
   return false;
 }
 
-function isSevenPairs(hand) {
-  if (hand.length !== 14) return false;
+function isSevenPairs(hand, meldCount = 0) {
+  if (meldCount !== 0 || hand.length !== 14) return false;
   const counts = Array(27).fill(0);
   hand.forEach((tile) => { counts[tile] += 1; });
   return counts.every((count) => count % 2 === 0)
     && counts.reduce((pairs, count) => pairs + count / 2, 0) === 7;
 }
 
-function isStandardWin(hand) {
-  if (hand.length !== 14) return false;
+function isStandardWin(hand, meldCount = 0) {
+  if (hand.length !== (4 - meldCount) * 3 + 2) return false;
   const counts = Array(27).fill(0);
   hand.forEach((tile) => { counts[tile] += 1; });
   for (let pair = 0; pair < counts.length; pair += 1) {
@@ -103,20 +103,22 @@ function isStandardWin(hand) {
   return false;
 }
 
-function winningInfo(hand) {
-  if (isSevenPairs(hand)) return { pattern: "七对", sevenPairs: true };
-  if (isStandardWin(hand)) return { pattern: "普通胡", sevenPairs: false };
+function winningInfo(hand, meldCount = 0) {
+  if (isSevenPairs(hand, meldCount)) return { pattern: "七对", sevenPairs: true };
+  if (isStandardWin(hand, meldCount)) return { pattern: "普通胡", sevenPairs: false };
   return null;
 }
 
-function isPureSuit(hand) {
-  return hand.length > 0 && hand.every((tile) => Math.floor(tile / 9) === Math.floor(hand[0] / 9));
+function isPureSuit(hand, melds = []) {
+  const tiles = [...hand, ...melds.flatMap((meld) => Array(meld.count).fill(meld.tile))];
+  return tiles.length > 0 && tiles.every((tile) => Math.floor(tile / 9) === Math.floor(tiles[0] / 9));
 }
 
-function winDetails(hand) {
-  const info = winningInfo(hand);
+function winDetails(hand, melds = []) {
+  const info = winningInfo(hand, melds.length);
   if (!info) return null;
-  const pureSuit = isPureSuit(hand);
+  const pureSuit = isPureSuit(hand, melds);
+  const hasKong = melds.some((meld) => meld.count === 4);
   let multiplier = 1;
   const bonuses = [];
   if (info.sevenPairs) {
@@ -127,7 +129,11 @@ function winDetails(hand) {
     multiplier *= 2;
     bonuses.push("清一色×2");
   }
-  return { ...info, pureSuit, multiplier, bonuses };
+  if (hasKong) {
+    multiplier *= 2;
+    bonuses.push("有杠×2");
+  }
+  return { ...info, pureSuit, hasKong, multiplier, bonuses };
 }
 
 function startGame(room) {
@@ -143,6 +149,7 @@ function startGame(room) {
     hands,
     discards: [],
     scores: room.scores,
+    melds: [[], [], [], []],
     starterSeat: room.nextStarterSeat,
     turn: room.nextStarterSeat,
     phase: "discard",
@@ -151,13 +158,28 @@ function startGame(room) {
   };
 }
 
-function findRonCandidates(room, tile, discarder) {
-  const candidates = [];
+function tileCount(hand, tile) {
+  return hand.reduce((count, value) => count + (value === tile ? 1 : 0), 0);
+}
+
+function removeTiles(hand, tile, amount) {
+  for (let removed = 0; removed < amount; removed += 1) hand.splice(hand.indexOf(tile), 1);
+}
+
+function buildClaimQueue(room, tile, discarder) {
+  const ronCandidates = [];
+  const meldCandidates = [];
   for (let offset = 1; offset < 4; offset += 1) {
     const seat = (discarder + offset) % 4;
-    if (winningInfo([...room.game.hands[seat], tile])) candidates.push(seat);
+    const count = tileCount(room.game.hands[seat], tile);
+    if (winningInfo([...room.game.hands[seat], tile], room.game.melds[seat].length)) {
+      ronCandidates.push({ seat, canWin: true, canPong: false, canKong: false });
+    }
+    if (count >= 2) {
+      meldCandidates.push({ seat, canWin: false, canPong: true, canKong: count >= 3 });
+    }
   }
-  return candidates;
+  return [...ronCandidates, ...meldCandidates];
 }
 
 function advanceTurn(room, previousSeat) {
@@ -183,7 +205,7 @@ function finishRound(room, winnerSeat, type, discarderSeat = null) {
     game.hands[winnerSeat].sort((a, b) => a - b);
     game.discards.pop();
   }
-  const details = winDetails(game.hands[winnerSeat]);
+  const details = winDetails(game.hands[winnerSeat], game.melds[winnerSeat]);
   const points = details.multiplier;
   if (type === "self-draw") {
     for (let seat = 0; seat < 4; seat += 1) {
@@ -214,8 +236,15 @@ function privateGameState(room, player) {
   const game = room.game;
   const selfDraw = game.phase === "discard"
     && game.turn === player.seat
-    && Boolean(winningInfo(game.hands[player.seat]));
-  const pendingWin = game.phase === "claim" && game.pendingAction?.seat === player.seat;
+    && Boolean(winningInfo(game.hands[player.seat], game.melds[player.seat].length));
+  const pendingOption = game.phase === "claim" ? game.pendingAction?.queue[game.pendingAction.queueIndex] : null;
+  const isPendingPlayer = pendingOption?.seat === player.seat;
+  const concealedKongTile = game.phase === "discard" && game.turn === player.seat
+    ? game.hands[player.seat].find((tile) => tileCount(game.hands[player.seat], tile) === 4) ?? null
+    : null;
+  const supplementMeld = game.phase === "discard" && game.turn === player.seat
+    ? game.melds[player.seat].find((meld) => meld.type === "pong" && tileCount(game.hands[player.seat], meld.tile) >= 1)
+    : null;
   return {
     roomCode: room.code,
     selfSeat: player.seat,
@@ -226,9 +255,13 @@ function privateGameState(room, player) {
     starterSeat: game.starterSeat,
     canDiscard: game.phase === "discard" && game.turn === player.seat,
     actions: {
-      canWin: selfDraw || pendingWin,
-      canPass: pendingWin,
-      winType: selfDraw ? "self-draw" : pendingWin ? "ron" : null,
+      canWin: selfDraw || Boolean(isPendingPlayer && pendingOption.canWin),
+      canPong: Boolean(isPendingPlayer && pendingOption.canPong),
+      canKong: Boolean(isPendingPlayer && pendingOption.canKong),
+      canPass: Boolean(isPendingPlayer),
+      winType: selfDraw ? "self-draw" : isPendingPlayer && pendingOption.canWin ? "ron" : null,
+      concealedKongTile,
+      supplementKongTile: supplementMeld?.tile ?? null,
     },
     result: game.result,
     isHost: room.hostId === player.id,
@@ -238,6 +271,7 @@ function privateGameState(room, player) {
       seat: roomPlayer.seat,
       score: game.scores[roomPlayer.seat],
       tileCount: game.hands[roomPlayer.seat].length,
+      melds: game.melds[roomPlayer.seat],
     })),
   };
 }
@@ -328,8 +362,9 @@ io.on("connection", (socket) => {
     const game = room.game;
     const canSelfDraw = game.phase === "discard"
       && game.turn === player.seat
-      && Boolean(winningInfo(game.hands[player.seat]));
-    const canRon = game.phase === "claim" && game.pendingAction?.seat === player.seat;
+      && Boolean(winningInfo(game.hands[player.seat], game.melds[player.seat].length));
+    const pendingOption = game.phase === "claim" ? game.pendingAction?.queue[game.pendingAction.queueIndex] : null;
+    const canRon = pendingOption?.seat === player.seat && pendingOption.canWin;
     if (!canSelfDraw && !canRon) return reply({ ok: false, message: "当前不能胡牌。" });
     if (canSelfDraw) finishRound(room, player.seat, "self-draw");
     else finishRound(room, player.seat, "ron", game.pendingAction.discarderSeat);
@@ -337,19 +372,112 @@ io.on("connection", (socket) => {
     emitGame(room);
   });
 
-  socket.on("pass-win", (_payload = {}, reply = () => {}) => {
+  socket.on("pass-action", (_payload = {}, reply = () => {}) => {
     const room = rooms.get(socket.data.roomCode);
     const player = room?.players.find((item) => item.id === socket.id);
-    if (!room?.game || !player || room.game.phase !== "claim" || room.game.pendingAction?.seat !== player.seat) {
-      return reply({ ok: false, message: "当前没有需要跳过的胡牌机会。" });
+    const pending = room?.game?.pendingAction;
+    const option = pending?.queue[pending.queueIndex];
+    if (!room?.game || !player || room.game.phase !== "claim" || option?.seat !== player.seat) {
+      return reply({ ok: false, message: "当前没有需要跳过的操作。" });
     }
-    const pending = room.game.pendingAction;
-    const nextCandidateIndex = pending.candidateIndex + 1;
-    if (nextCandidateIndex < pending.candidates.length) {
-      pending.candidateIndex = nextCandidateIndex;
-      pending.seat = pending.candidates[nextCandidateIndex];
+    const nextQueueIndex = pending.queueIndex + 1;
+    if (nextQueueIndex < pending.queue.length) {
+      pending.queueIndex = nextQueueIndex;
     } else {
       advanceTurn(room, pending.discarderSeat);
+    }
+    reply({ ok: true });
+    emitGame(room);
+  });
+
+  function claimMeld(socket, type, reply) {
+    const room = rooms.get(socket.data.roomCode);
+    const player = room?.players.find((item) => item.id === socket.id);
+    const pending = room?.game?.pendingAction;
+    const option = pending?.queue[pending.queueIndex];
+    const isKong = type === "exposed-kong";
+    const allowed = isKong ? option?.canKong : option?.canPong;
+    if (!room?.game || !player || room.game.phase !== "claim" || option?.seat !== player.seat || !allowed) {
+      return reply({ ok: false, message: `当前不能${isKong ? "杠" : "碰"}。` });
+    }
+    const amount = isKong ? 3 : 2;
+    removeTiles(room.game.hands[player.seat], pending.tile, amount);
+    room.game.discards.pop();
+    room.game.melds[player.seat].push({
+      type,
+      tile: pending.tile,
+      count: amount + 1,
+      sourceSeat: pending.discarderSeat,
+    });
+    room.game.turn = player.seat;
+    room.game.phase = "discard";
+    room.game.pendingAction = null;
+    if (isKong) {
+      room.scores[pending.discarderSeat] -= 1;
+      room.scores[player.seat] += 1;
+      const replacement = room.game.wall.pop();
+      if (replacement === undefined) {
+        room.game.phase = "ended";
+        room.game.result = { type: "draw", message: "牌墙已摸完，本局流局。" };
+      } else {
+        room.game.hands[player.seat].push(replacement);
+        room.game.hands[player.seat].sort((a, b) => a - b);
+      }
+    }
+    reply({ ok: true });
+    emitGame(room);
+  }
+
+  socket.on("claim-pong", (_payload = {}, reply = () => {}) => claimMeld(socket, "pong", reply));
+  socket.on("claim-kong", (_payload = {}, reply = () => {}) => claimMeld(socket, "exposed-kong", reply));
+
+  socket.on("concealed-kong", ({ tile } = {}, reply = () => {}) => {
+    const room = rooms.get(socket.data.roomCode);
+    const player = room?.players.find((item) => item.id === socket.id);
+    if (!room?.game || !player || room.game.phase !== "discard" || room.game.turn !== player.seat
+      || !Number.isInteger(tile) || tileCount(room.game.hands[player.seat], tile) !== 4) {
+      return reply({ ok: false, message: "当前不能暗杠。" });
+    }
+    removeTiles(room.game.hands[player.seat], tile, 4);
+    room.game.melds[player.seat].push({ type: "concealed-kong", tile, count: 4, sourceSeat: null });
+    for (let seat = 0; seat < 4; seat += 1) {
+      if (seat !== player.seat) {
+        room.scores[seat] -= 1;
+        room.scores[player.seat] += 1;
+      }
+    }
+    const replacement = room.game.wall.pop();
+    if (replacement === undefined) {
+      room.game.phase = "ended";
+      room.game.result = { type: "draw", message: "牌墙已摸完，本局流局。" };
+    } else {
+      room.game.hands[player.seat].push(replacement);
+      room.game.hands[player.seat].sort((a, b) => a - b);
+    }
+    reply({ ok: true });
+    emitGame(room);
+  });
+
+  socket.on("supplement-kong", ({ tile } = {}, reply = () => {}) => {
+    const room = rooms.get(socket.data.roomCode);
+    const player = room?.players.find((item) => item.id === socket.id);
+    const meld = player && room?.game?.melds[player.seat].find((item) => item.type === "pong" && item.tile === tile);
+    if (!room?.game || !player || room.game.phase !== "discard" || room.game.turn !== player.seat
+      || !meld || tileCount(room.game.hands[player.seat], tile) < 1) {
+      return reply({ ok: false, message: "当前不能补杠。" });
+    }
+    removeTiles(room.game.hands[player.seat], tile, 1);
+    meld.type = "supplement-kong";
+    meld.count = 4;
+    room.scores[meld.sourceSeat] -= 1;
+    room.scores[player.seat] += 1;
+    const replacement = room.game.wall.pop();
+    if (replacement === undefined) {
+      room.game.phase = "ended";
+      room.game.result = { type: "draw", message: "牌墙已摸完，本局流局。" };
+    } else {
+      room.game.hands[player.seat].push(replacement);
+      room.game.hands[player.seat].sort((a, b) => a - b);
     }
     reply({ ok: true });
     emitGame(room);
@@ -378,16 +506,14 @@ io.on("connection", (socket) => {
     }
     const [tile] = room.game.hands[player.seat].splice(index, 1);
     room.game.discards.push({ tile, seat: player.seat });
-    const ronCandidates = findRonCandidates(room, tile, player.seat);
-    if (ronCandidates.length > 0) {
+    const claimQueue = buildClaimQueue(room, tile, player.seat);
+    if (claimQueue.length > 0) {
       room.game.phase = "claim";
       room.game.pendingAction = {
-        type: "ron",
-        seat: ronCandidates[0],
         tile,
         discarderSeat: player.seat,
-        candidates: ronCandidates,
-        candidateIndex: 0,
+        queue: claimQueue,
+        queueIndex: 0,
       };
     } else {
       advanceTurn(room, player.seat);
@@ -406,4 +532,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { finishRound, isSevenPairs, isStandardWin, winningInfo, winDetails };
+module.exports = { buildClaimQueue, finishRound, isSevenPairs, isStandardWin, winningInfo, winDetails };
