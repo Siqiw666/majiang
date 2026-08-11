@@ -6,6 +6,14 @@ const onlineGameView = document.querySelector("#online-game-view");
 const lobbyFormView = document.querySelector("#lobby-form-view");
 const waitingRoom = document.querySelector("#waiting-room");
 const lobbyError = document.querySelector("#lobby-error");
+const productionServerUrl = "https://majiang-0eot.onrender.com";
+
+function socketServerUrl() {
+  const localHosts = new Set(["localhost", "127.0.0.1"]);
+  const isLocalServer = localHosts.has(window.location.hostname);
+  const isRenderServer = window.location.hostname.endsWith(".onrender.com");
+  return isLocalServer || isRenderServer ? undefined : productionServerUrl;
+}
 
 function showView(view) {
   modeView.hidden = view !== "mode";
@@ -24,12 +32,19 @@ function setLobbyError(message = "") {
 }
 
 function connectLobby() {
-  if (lobbyState.socket?.connected) return true;
+  if (lobbyState.socket) return true;
   if (typeof window.io !== "function") {
     setLobbyError("联机服务尚未启动，请通过 Node 服务器打开网站。");
     return false;
   }
-  lobbyState.socket = window.io();
+  setLobbyError("正在连接联机服务器…免费服务唤醒时可能需要约 50 秒。");
+  lobbyState.socket = window.io(socketServerUrl(), {
+    transports: ["websocket"],
+    timeout: 60000,
+    reconnection: true,
+    reconnectionAttempts: 8,
+  });
+  lobbyState.socket.on("connect", () => setLobbyError());
   lobbyState.socket.on("room-updated", updateRoom);
   lobbyState.socket.on("game-state", updateOnlineGame);
   lobbyState.socket.on("game-stopped", ({ message }) => {
@@ -38,7 +53,7 @@ function connectLobby() {
     lobbyFormView.hidden = true;
     document.querySelector("#room-status").textContent = message;
   });
-  lobbyState.socket.on("connect_error", () => setLobbyError("无法连接联机服务器，请稍后重试。"));
+  lobbyState.socket.on("connect_error", () => setLobbyError("联机服务器正在启动或暂时无法连接，请稍后重试。"));
   return true;
 }
 

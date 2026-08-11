@@ -5,7 +5,22 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const allowedOrigins = new Set([
+  "https://siqiwang.com",
+  "https://www.siqiwang.com",
+  "https://majiang-0eot.onrender.com",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+]);
+const io = new Server(server, {
+  cors: {
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) callback(null, true);
+      else callback(new Error("Origin not allowed"));
+    },
+    methods: ["GET", "POST"],
+  },
+});
 const port = process.env.PORT || 3000;
 const projectRoot = path.resolve(__dirname, "..");
 const rooms = new Map();
